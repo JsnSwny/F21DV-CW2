@@ -172,18 +172,18 @@ const addPoints = () => {
     })
     .attr("class", "point")
     .style("opacity", 0.75)
+    .style("cursor", "pointer")
     .on("click", function (e, d) {
-      if (
-        selectedPoint &&
-        selectedPoint.latitude == d.latitude &&
-        selectedPoint.longitude == d.longitude
-      ) {
-        console.log("Already selected");
+      if (selectedPoint && selectedPoint.latitude == d.latitude) {
         selectedPoint = null;
-        d3.selectAll(".point").style("opacity", 0.75);
+        d3.selectAll(".point")
+          .transition()
+          .duration(400)
+          .style("opacity", 0.75);
       } else {
-        d3.selectAll(".point").style("opacity", 0.1);
-        d3.select(this).style("opacity", 1);
+        d3.selectAll(".point").transition().duration(400).style("opacity", 0.1);
+        d3.select(this).transition().duration(400).style("opacity", 1);
+        selectedPoint = d;
       }
       selectPoint(d);
     });
@@ -287,15 +287,6 @@ const loadChart = () => {
 
   updateChart();
 };
-
-const dateData = [
-  { date: "2022-01-01", value: 10 },
-  { date: "2022-01-02", value: 20 },
-  { date: "2022-01-03", value: 30 },
-  { date: "2022-01-02", value: 15 },
-  { date: "2022-01-01", value: 25 },
-];
-
 function updateChart() {
   //   mapWidth = document.querySelector(".map").offsetWidth;
   //   mapHeight = document.querySelector(".view").offsetHeight;
