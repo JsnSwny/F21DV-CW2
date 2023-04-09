@@ -34,7 +34,7 @@ body {
 
 .sidebar {
   width: 500px;
-  background-color: rgb(37, 40, 48);
+  background-color: rgba(37, 40, 48, 0.9);
   position: fixed;
   top: 0;
   bottom: 0;
@@ -45,4 +45,11 @@ body {
 
 .sidebar-right {
   right: 0;
+}
+
+.timeline {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  color: white;
 }
