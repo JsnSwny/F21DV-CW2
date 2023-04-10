@@ -1,5 +1,6 @@
 // Gets map data from github URL
 let data = [];
+let filteredData = [];
 let mapSvg = null;
 let projection = null;
 let plotColor = null;
@@ -8,16 +9,174 @@ let map;
 let plots;
 let points;
 let selectedPoint;
+let languagesChart;
+
+class HorizontalBarChart {
+  constructor(svgElement, data) {
+    this.margin = { top: 20, right: 30, bottom: 40, left: 60 };
+    this.width = 460 - this.margin.left - this.margin.right;
+    this.height = 400 - this.margin.top - this.margin.bottom;
+    this.svg = d3
+      .select(svgElement)
+      .append("svg")
+      .attr("width", this.width + this.margin.left + this.margin.right)
+      .attr("height", this.height + this.margin.top + this.margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${this.margin.left}, ${this.margin.top})`);
+    this.data = data;
+    this.languageCountsArray = [];
+    this.sortedLanguages = [];
+    this.colorScale = d3
+      .scaleOrdinal()
+      .range([
+        "#e41a1c",
+        "#377eb8",
+        "#4daf4a",
+        "#984ea3",
+        "#ff7f00",
+        "#ffff33",
+        "#a65628",
+        "#f781bf",
+        "#999999",
+      ]);
+    this.x = d3.scaleLinear().range([0, this.width]);
+    this.y = d3.scaleBand().range([0, this.height]).padding(0.1);
+    this.xAxis = d3.axisBottom(this.x);
+    this.yAxis = d3.axisLeft(this.y);
+
+    this.createChart();
+  }
+
+  createChart() {
+    const languagesRollup = d3.rollup(this.data, (v) => {
+      return v
+        .flatMap((d) => d.languages)
+        .reduce((acc, lang) => {
+          acc.set(lang, (acc.get(lang) || 0) + 1);
+          return acc;
+        }, new Map());
+    });
+
+    this.svg
+      .attr("width", this.width + this.margin.left + this.margin.right)
+      .attr("height", this.height + this.margin.top + this.margin.bottom)
+      .append("g")
+      .attr("transform", `translate(500, 100)`);
+
+    this.languageCountsArray = Array.from(
+      languagesRollup,
+      ([language, count]) => ({
+        language,
+        count,
+      })
+    );
+
+    this.sortedLanguages = this.languageCountsArray
+      .sort((a, b) => b.count - a.count)
+      .slice(1, 21);
+
+    this.colorScale.domain(this.sortedLanguages);
+
+    this.x.domain([0, this.sortedLanguages[0].count]);
+    this.y.domain(this.sortedLanguages.map((d) => d.language));
+
+    this.svg.selectAll("*").remove();
+
+    // X axis
+    this.svg
+      .append("g")
+      .attr("transform", `translate(0, ${this.height})`)
+      .call(this.xAxis)
+      .selectAll("text")
+      .attr("transform", "translate(-10,0)rotate(-45)")
+      .style("text-anchor", "end")
+      .attr("class", "x-axis");
+
+    // Y axis
+    this.svg.append("g").attr("class", "y-axis").call(this.yAxis);
+
+    // Bars
+    this.svg
+      .selectAll("myRect")
+      .data(this.sortedLanguages)
+      .join("rect")
+      .attr("x", this.x(0))
+      .attr("y", (d) => this.y(d.language))
+      .attr("width", (d) => this.x(d.count))
+      .attr("height", this.y.bandwidth())
+      .attr("fill", (d, idx) => this.colorScale(idx));
+  }
+  updateChart(newData) {
+    const languagesRollup = d3.rollup(newData, (v) => {
+      return v
+        .flatMap((d) => d.languages)
+        .reduce((acc, lang) => {
+          acc.set(lang, (acc.get(lang) || 0) + 1);
+          return acc;
+        }, new Map());
+    });
+
+    console.log(languagesRollup);
+
+    this.languageCountsArray = Array.from(
+      languagesRollup,
+      ([language, count]) => ({
+        language,
+        count,
+      })
+    );
+
+    this.sortedLanguages = this.languageCountsArray
+      .sort((a, b) => b.count - a.count)
+      .slice(1, 21);
+
+    console.log(this.sortedLanguages);
+
+    this.colorScale.domain(this.sortedLanguages);
+
+    this.x.domain([0, this.sortedLanguages[0].count]);
+    this.y.domain(this.sortedLanguages.map((d) => d.language));
+
+    // Update X axis
+    this.svg.select(".x-axis").call(this.xAxis);
+
+    // Update Y axis
+    this.svg.select(".y-axis").call(this.yAxis);
+
+    // Update bars
+    this.svg
+      .selectAll("rect")
+      .data(this.sortedLanguages)
+      .join(
+        (enter) =>
+          enter
+
+            .append("rect")
+            .transition()
+            .duration(300)
+            .attr("x", this.x(0))
+            .attr("y", (d) => this.y(d.language))
+
+            .attr("width", (d) => this.x(d.count))
+            .attr("height", this.y.bandwidth())
+            .attr("fill", (d, idx) => this.colorScale(idx)),
+        (update) =>
+          update
+            .transition()
+            .duration(300)
+            .attr("x", this.x(0))
+            .attr("y", (d) => this.y(d.language))
+
+            .attr("width", (d) => this.x(d.count))
+            .attr("height", this.y.bandwidth())
+            .attr("fill", (d, idx) => this.colorScale(idx)),
+        (exit) => exit.remove()
+      );
+  }
+}
 
 // COLORS
 // -------
-
-let objects = [
-  { unique_languages: ["Python", "JavaScript", "Java"] },
-  { unique_languages: ["C++", "Java", "Python", "Ruby"] },
-  { unique_languages: ["JavaScript", "Python", "PHP"] },
-];
-
 const getMap = async () => {
   const mapData = await d3.json(
     "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson"
@@ -27,98 +186,19 @@ const getMap = async () => {
 
 const getData = async () => {
   data = await d3.json("data-16.json");
-};
-
-const getPopularLanguages = () => {
-  languagesRollup = d3.rollup(data, (v) => {
-    return v
-      .flatMap((d) => d.languages)
-      .reduce((acc, lang) => {
-        acc.set(lang, (acc.get(lang) || 0) + 1);
-        return acc;
-      }, new Map());
-  });
-
-  // set the dimensions and margins of the graph
-  const margin = { top: 20, right: 30, bottom: 40, left: 60 },
-    width = 460 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
-
-  let languageCountsArray = Array.from(
-    languagesRollup,
-    ([language, count]) => ({
-      language,
-      count,
-    })
-  );
-
-  let sortedLanguages = languageCountsArray
-    .sort((a, b) => b.count - a.count)
-    .slice(1, 21);
-
-  let colorScale = d3
-    .scaleOrdinal()
-    .domain(sortedLanguages)
-    .range([
-      "#e41a1c",
-      "#377eb8",
-      "#4daf4a",
-      "#984ea3",
-      "#ff7f00",
-      "#ffff33",
-      "#a65628",
-      "#f781bf",
-      "#999999",
-    ]);
-
-  // append the svg object to the body of the page
-  const svg = d3
-    .select("#languages")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-  const x = d3
-    .scaleLinear()
-    .domain([0, sortedLanguages[0].count])
-    .range([0, width]);
-  svg
-    .append("g")
-    .attr("transform", `translate(0, ${height})`)
-    .call(d3.axisBottom(x))
-    .selectAll("text")
-    .attr("transform", "translate(-10,0)rotate(-45)")
-    .style("text-anchor", "end");
-
-  // Y axis
-  const y = d3
-    .scaleBand()
-    .range([0, height])
-    .domain(sortedLanguages.map((d) => d.language))
-    .padding(0.1);
-  svg.append("g").call(d3.axisLeft(y));
-
-  //Bars
-  svg
-    .selectAll("myRect")
-    .data(sortedLanguages)
-    .join("rect")
-    .attr("x", x(0))
-    .attr("y", (d) => y(d.language))
-    .attr("width", (d) => x(d.count))
-    .attr("height", y.bandwidth())
-    .attr("fill", (d, idx) => colorScale(idx));
+  filteredData = data;
 };
 
 const updateData = () => {
-  getPopularLanguages();
+  //   getPopularLanguages();
   loadChart();
+  languagesChart.updateChart(filteredData);
 };
 
 const hoverCountry = (obj) => {
-  console.log(obj.id);
+  groupedCountries = d3.group(data, (d) => d.country_codes);
+  filteredData = groupedCountries.get(obj.id);
+  updateData();
 };
 
 const selectPoint = (obj) => {
@@ -214,7 +294,23 @@ const loadMap = (mapData) => {
     .attr("d", d3.geoPath().projection(projection))
     .style("stroke", "#262632")
     .attr("fill", "#33333E")
-    .on("mouseover", (e, d) => hoverCountry(d));
+    .style("cursor", "pointer")
+    .on("mouseover", function (e, d) {
+      d3.selectAll(".country")
+        .transition()
+        .duration(400)
+        .attr("fill", "#33333E");
+      d3.select(this).transition().duration(400).attr("fill", "#6c6c74");
+      hoverCountry(d);
+    })
+    .on("click", function (e, d) {
+      d3.selectAll(".country")
+        .transition()
+        .duration(400)
+        .attr("fill", "#33333E");
+
+      d3.select(this).transition().duration(400).attr("fill", "#636386");
+    });
 
   mapSvg.call(zoom);
 };
@@ -294,22 +390,42 @@ function updateChart() {
     width = 1400 - margin.left - margin.right,
     height = 200 - margin.top - margin.bottom;
   const lineSvg = d3.select("#timeline").select("g");
-  lineSvg.selectAll("g").remove();
-  lineSvg.selectAll("path").remove();
 
-  // Group data by date, excluding data with null or undefined timestamps
-  let groupedData = d3.group(
+  let allData = d3.group(
     data.filter((d) => d.created_at !== null && d.created_at !== undefined),
     (d) => {
       const date = new Date(d.created_at);
       // Create new Date object with only date portion
-      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      return new Date(date.getFullYear(), date.getMonth(), date.getDay());
     }
   );
 
-  groupedData = Array.from(groupedData).sort((a, b) => a[0] - b[0]);
+  // Group data by date, excluding data with null or undefined timestamps
+  let groupedData = d3.group(
+    filteredData.filter(
+      (d) => d.created_at !== null && d.created_at !== undefined
+    ),
+    (d) => {
+      const date = new Date(d.created_at);
+      // Create new Date object with only date portion
+      return new Date(date.getFullYear(), date.getMonth());
+    }
+  );
 
-  //   console.log(sortedData);
+  console.log(filteredData);
+
+  const minDate = d3.min(allData, (d) => d[0]);
+  const maxDate = d3.max(allData, (d) => d[0]);
+
+  // Create a complete set of dates between the min and max dates
+  const allDates = d3.timeMonths(minDate, d3.timeDay.offset(maxDate, 1));
+  lineSvg.selectAll("g").remove();
+  lineSvg.selectAll("path").remove();
+
+  // Fill in any missing dates with zero counts
+  groupedData = allDates.map((date) => [date, groupedData.get(date) || []]);
+
+  //   groupedData = Array.from(groupedData).sort((a, b) => a[0] - b[0]);
 
   const x = d3
     .scaleTime()
@@ -353,8 +469,6 @@ function updateChart() {
   max = d3.max(groupedData, function (d) {
     return d[1].length;
   });
-
-  console.log(`Max ${max}`);
 
   y = d3.scaleLinear().domain([0, max]).range([height, 0]);
   lineSvg.append("g").call(d3.axisLeft(y));
@@ -427,8 +541,8 @@ function updateChart() {
 getMap().then((map) => {
   loadMap(map);
   getData().then(() => {
-    console.log(data);
     getPoints();
+    languagesChart = new HorizontalBarChart("#languages", filteredData);
     updateData();
   });
 });
