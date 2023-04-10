@@ -33,8 +33,8 @@ body {
 }
 
 .sidebar {
-  width: 500px;
-  background-color: rgba(37, 40, 48, 0.9);
+  width: 550px;
+  background-color: rgba(37, 40, 48, 1);
   position: fixed;
   top: 0;
   bottom: 0;

@@ -17,7 +17,7 @@ let networkLines;
 class HorizontalBarChart {
   constructor(svgElement, data) {
     this.margin = { top: 20, right: 30, bottom: 40, left: 90 };
-    this.width = 460 - this.margin.left - this.margin.right;
+    this.width = 500 - this.margin.left - this.margin.right;
     this.height = 400 - this.margin.top - this.margin.bottom;
     this.svg = d3
       .select(svgElement)
@@ -149,11 +149,7 @@ class HorizontalBarChart {
       .join(
         (enter) =>
           enter
-
             .append("rect")
-            .on("click", function (e, d) {
-              console.log(d);
-            })
             .style("cursor", "pointer")
             .transition()
             .duration(1000)
@@ -167,9 +163,9 @@ class HorizontalBarChart {
         (update) =>
           update
             .on("click", function (e, d) {
+              selectedLanguage = d.language;
               filterByLanguage(d.language);
             })
-
             .transition()
             .duration(1000)
             .attr("x", this.x(0))
@@ -178,7 +174,16 @@ class HorizontalBarChart {
 
             .attr("width", (d) => this.x(d.count))
             .attr("height", this.y.bandwidth())
-            .attr("fill", (d, idx) => this.colorScale(idx)),
+            .attr("fill", (d, idx) => this.colorScale(idx))
+            .style("opacity", (d) => {
+              console.log(`Selected Language: ${selectedLanguage}`);
+              console.log(d);
+              return !selectedLanguage
+                ? 1
+                : d.language == selectedLanguage
+                ? 1
+                : 0.2;
+            }),
         (exit) => exit.remove()
       );
   }
@@ -367,8 +372,8 @@ const loadMap = (mapData) => {
 
   projection = d3
     .geoNaturalEarth1()
-    .scale(500)
-    .center([-3.188267, 55.953251])
+    .scale(400)
+    .center([-3.188267, 20.953251])
     .translate([width / 2, height / 2]);
   features = map
     .selectAll("path")
@@ -417,6 +422,7 @@ const loadMap = (mapData) => {
 
 const loadChart = () => {
   // set the dimensions and margins of the graph
+
   d3.select("#timeline").selectAll("svg").remove();
   d3.select("#legend-container").selectAll("div").remove();
   const margin = { top: 10, right: 100, bottom: 70, left: 65 },
