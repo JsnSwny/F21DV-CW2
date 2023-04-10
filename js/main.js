@@ -8,12 +8,14 @@ let radiusScale = null;
 let map;
 let plots;
 let points;
+let filteredPoints;
 let selectedPoint;
 let languagesChart;
+let selectedLanguage;
 
 class HorizontalBarChart {
   constructor(svgElement, data) {
-    this.margin = { top: 20, right: 30, bottom: 40, left: 60 };
+    this.margin = { top: 20, right: 30, bottom: 40, left: 90 };
     this.width = 460 - this.margin.left - this.margin.right;
     this.height = 400 - this.margin.top - this.margin.bottom;
     this.svg = d3
@@ -73,7 +75,7 @@ class HorizontalBarChart {
 
     this.sortedLanguages = this.languageCountsArray
       .sort((a, b) => b.count - a.count)
-      .slice(1, 21);
+      .slice(0, 15);
 
     this.colorScale.domain(this.sortedLanguages);
 
@@ -85,12 +87,12 @@ class HorizontalBarChart {
     // X axis
     this.svg
       .append("g")
+      .attr("class", "x-axis")
       .attr("transform", `translate(0, ${this.height})`)
       .call(this.xAxis)
       .selectAll("text")
       .attr("transform", "translate(-10,0)rotate(-45)")
-      .style("text-anchor", "end")
-      .attr("class", "x-axis");
+      .style("text-anchor", "end");
 
     // Y axis
     this.svg.append("g").attr("class", "y-axis").call(this.yAxis);
@@ -116,8 +118,6 @@ class HorizontalBarChart {
         }, new Map());
     });
 
-    console.log(languagesRollup);
-
     this.languageCountsArray = Array.from(
       languagesRollup,
       ([language, count]) => ({
@@ -128,9 +128,7 @@ class HorizontalBarChart {
 
     this.sortedLanguages = this.languageCountsArray
       .sort((a, b) => b.count - a.count)
-      .slice(1, 21);
-
-    console.log(this.sortedLanguages);
+      .slice(0, 15);
 
     this.colorScale.domain(this.sortedLanguages);
 
@@ -152,20 +150,30 @@ class HorizontalBarChart {
           enter
 
             .append("rect")
+            .on("click", function (e, d) {
+              console.log(d);
+            })
+            .style("cursor", "pointer")
             .transition()
-            .duration(300)
+            .duration(1000)
             .attr("x", this.x(0))
             .attr("y", (d) => this.y(d.language))
 
             .attr("width", (d) => this.x(d.count))
             .attr("height", this.y.bandwidth())
             .attr("fill", (d, idx) => this.colorScale(idx)),
+
         (update) =>
           update
+            .on("click", function (e, d) {
+              filterByLanguage(d.language);
+            })
+
             .transition()
-            .duration(300)
+            .duration(1000)
             .attr("x", this.x(0))
             .attr("y", (d) => this.y(d.language))
+            .style("cursor", "pointer")
 
             .attr("width", (d) => this.x(d.count))
             .attr("height", this.y.bandwidth())
@@ -174,6 +182,11 @@ class HorizontalBarChart {
       );
   }
 }
+
+const filterByLanguage = (language) => {
+  filteredData = data.filter((item) => item.languages.includes(language));
+  updateData();
+};
 
 // COLORS
 // -------
@@ -192,6 +205,7 @@ const getData = async () => {
 const updateData = () => {
   //   getPopularLanguages();
   loadChart();
+  updatePoints(filteredData);
   languagesChart.updateChart(filteredData);
 };
 
@@ -202,23 +216,36 @@ const hoverCountry = (obj) => {
 };
 
 const selectPoint = (obj) => {
-  console.log(obj.id);
+  following = obj[1].map((item) => item.following_list);
+  const uniqueFollowing = [...new Set(following.flat())];
+
+  const followingData = data.filter((item) =>
+    uniqueFollowing.includes(item.id)
+  );
+
+  console.log(followingData);
+  // data = data.filter((d) => d.locations !== null);
+  // let points = d3.group(data, (d) => `${d.latitude},${d.longitude}`);
 };
 
 const getPoints = async () => {
-  points = await d3.json("points.json");
-  points = points.sort(function (a, b) {
-    return b.id.length - a.id.length;
-  });
-  points = points.map((item, index) => ({ ...item, pointId: index + 1 }));
-  maxIdsLength = d3.max(points, (d) => d.id.length);
+  updatePoints(data);
+};
+
+const updatePoints = (data) => {
+  data = data.filter((d) => d.locations !== null);
+  let points = d3.group(data, (d) => `${d.latitude},${d.longitude}`);
+
+  const maxIdsLength = d3.max(points, (group) => group[1].length);
+
   plotColor = d3
     .scaleSqrt()
     .domain([1, maxIdsLength])
     .range(["#fff7ec", "#7f0000"]);
 
   radiusScale = d3.scaleSqrt().domain([1, maxIdsLength]).range([0.25, 10]);
-  addPoints();
+  addPoints(points);
+  return points;
 };
 
 const zoom = d3
@@ -226,28 +253,36 @@ const zoom = d3
   .on("zoom", (event) => {
     map.attr("transform", event.transform);
     plots.attr("transform", event.transform);
+    // plots.selectAll("g").attr("transform", (d) => {
+    //   const zoomTransform = d3.zoomTransform(mapSvg.node());
+    //   const [latitude, longitude] = d[0].split(",");
+    //   const [x, y] = projection([longitude, latitude]);
+    //   return `translate(${zoomTransform.apply([x, y]).join(",")})`;
+    // });
   })
   .scaleExtent([1, 10]);
 
-const addPoints = () => {
+const addPoints = (data) => {
   mapSvg.selectAll(".circle").remove();
+  console.log(data);
   plots = mapSvg.append("g");
   plots
     .selectAll("g")
-    .data(points)
+    .data(data)
     .enter("g")
     .append("g")
     .attr("class", "circle")
-    .attr("transform", ({ longitude, latitude }) => {
+    .attr("transform", (d) => {
+      const [latitude, longitude] = d[0].split(",");
       return `translate(${projection([longitude, latitude]).join(",")})`;
     })
     .append("circle")
     .attr("r", (d) => {
-      let count = d.id.length;
+      let count = d[1].length;
       return radiusScale(count);
     })
     .attr("fill", (d) => {
-      let count = d.id.length;
+      let count = d[1].length;
       return plotColor(count);
     })
     .attr("class", "point")
@@ -267,6 +302,9 @@ const addPoints = () => {
       }
       selectPoint(d);
     });
+  const zoomTransform = d3.zoomTransform(mapSvg.node());
+  plots.attr("transform", zoomTransform);
+  mapSvg.call(zoom);
 };
 
 const loadMap = (mapData) => {
@@ -296,12 +334,20 @@ const loadMap = (mapData) => {
     .attr("fill", "#33333E")
     .style("cursor", "pointer")
     .on("mouseover", function (e, d) {
-      d3.selectAll(".country")
-        .transition()
-        .duration(400)
-        .attr("fill", "#33333E");
-      d3.select(this).transition().duration(400).attr("fill", "#6c6c74");
-      hoverCountry(d);
+      // d3.selectAll(".country")
+      //   .transition()
+      //   .duration(400)
+      //   .attr("fill", "#33333E");
+      // d3.select(this).transition().duration(400).attr("fill", "#0083B7");
+      // hoverCountry(d);
+    })
+    .on("mouseout", function (e, d) {
+      // d3.selectAll(".country")
+      //   .transition()
+      //   .duration(400)
+      //   .attr("fill", "#33333E");
+      // filteredData = data;
+      // updateData();
     })
     .on("click", function (e, d) {
       d3.selectAll(".country")
@@ -477,17 +523,19 @@ function updateChart() {
   path
     .datum(groupedData)
     .attr("class", "line")
-    .attr("fill", "none")
-    .attr("stroke", "white")
-    .attr("stroke-width", 1)
+    .attr("fill", "#0083B7")
+    .attr("fill-opacity", 0.6)
+    .attr("stroke", "#0083B7")
+    .attr("stroke-width", 2)
     .attr(
       "d",
       d3
-        .line()
+        .area()
         .x(function (d) {
           return x(d[0]);
         })
-        .y(function (d) {
+        .y0(height)
+        .y1(function (d) {
           return y(d[1].length);
         })
     );
@@ -527,11 +575,12 @@ function updateChart() {
       .attr(
         "d",
         d3
-          .line()
+          .area()
           .x(function (d) {
             return x(d[0]);
           })
-          .y(function (d) {
+          .y0(height)
+          .y1(function (d) {
             return y(d[1].length);
           })
       );
