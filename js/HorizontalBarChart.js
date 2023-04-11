@@ -91,7 +91,7 @@ class HorizontalBarChart {
       .attr("y", (d) => this.y(d.language))
       .attr("width", (d) => this.x(d.count))
       .attr("height", this.y.bandwidth())
-      .attr("fill", (d, idx) => this.colorScale(idx));
+      .attr("fill", (d, idx) => languageColors[d.language]);
   }
   updateChart(newData) {
     const languagesRollup = d3.rollup(newData, (v) => {
@@ -126,6 +126,9 @@ class HorizontalBarChart {
     // Update Y axis
     this.svg.select(".y-axis").call(this.yAxis);
 
+    console.log("Updating chart");
+    console.log(this.sortedLanguages);
+
     // Update bars
     this.svg
       .selectAll("rect")
@@ -142,45 +145,35 @@ class HorizontalBarChart {
 
             .attr("width", (d) => this.x(d.count))
             .attr("height", this.y.bandwidth())
-            .attr("fill", (d, idx) => this.colorScale(idx)),
+            .attr("fill", (d, idx) => languageColors[d.language]),
 
         (update) =>
           update
             .on("click", function (e, d) {
               if (selectedLanguage == d.language) {
-                selectedLanguage = null;
-                filteredData = data;
-                updateData();
+                selectLanguage("");
               } else {
-                selectedLanguage = d.language;
-                updateData();
+                selectLanguage(d.language);
               }
             })
             .on("mouseover", (e) => {
-              this.svg
-                .selectAll("rect")
-                .transition()
-                .duration(300)
-                .style("opacity", (d) => {
-                  return d.language == selectedLanguage ? 1 : 0.2;
-                });
               d3.select(e.target)
                 .transition()
                 .duration(300)
                 .style("opacity", 1);
             })
+
             .on("mouseout", (e) => {
-              this.svg
-                .selectAll("rect")
+              d3.select(e.target)
                 .transition()
                 .duration(300)
-                .style("opacity", (d) => {
-                  return !selectedLanguage
+                .style("opacity", (d) =>
+                  !selectedLanguage
                     ? 1
-                    : d.language == selectedLanguage
-                    ? 1
-                    : 0.2;
-                });
+                    : d.language != selectedLanguage
+                    ? 0.2
+                    : 1
+                );
             })
             .transition()
             .duration(1000)
@@ -190,8 +183,13 @@ class HorizontalBarChart {
 
             .attr("width", (d) => this.x(d.count))
             .attr("height", this.y.bandwidth())
-            .attr("fill", (d, idx) => this.colorScale(idx))
+            .attr("fill", (d, idx) => {
+              return languageColors[d.language]
+                ? languageColors[d.language]
+                : this.colorScale(idx);
+            })
             .style("opacity", (d) => {
+              console.log(selectedLanguage);
               return !selectedLanguage
                 ? 1
                 : d.language == selectedLanguage

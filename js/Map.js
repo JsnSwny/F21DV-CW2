@@ -184,25 +184,9 @@ const loadMap = (mapData) => {
       // d3.select(this).transition().duration(400).attr("fill", "#0083B7");
       // hoverCountry(d);
     })
-    .on("mouseout", function (e, d) {
-      // d3.selectAll(".country")
-      //   .transition()
-      //   .duration(400)
-      //   .attr("fill", "#33333E");
-      // filteredData = data;
-      // updateData();
-    })
+    .on("mouseout", function (e, d) {})
     .on("click", function (e, d) {
-      //   d3.selectAll(".country")
-      //     .transition()
-      //     .duration(400)
-      //     .attr("fill", "#33333E");
-
-      //   d3.select(this).transition().duration(400).attr("fill", "#636386");
-
-      selectedCountry = d.id;
-      d3.select("");
-      updateData();
+      selectCountry(d.id);
     });
 
   mapSvg.call(zoom);

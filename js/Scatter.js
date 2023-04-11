@@ -104,6 +104,7 @@ const loadGDP = () => {
           .attr("r", 3)
           .style("fill-opacity", 0.4)
           .style("fill", (d) => "#0083B7")
+          .style("cursor", "pointer")
           .on("mousemove", (e, d) => {
             tooltipMouseMoveCountry(e, d);
           })
@@ -113,6 +114,9 @@ const loadGDP = () => {
           })
           .on("mouseout", (e, d) => {
             tooltipMouseOut();
+          })
+          .on("click", (e, d) => {
+            selectCountry(d.countryCode);
           });
         return g;
       },
