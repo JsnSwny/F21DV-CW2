@@ -163,8 +163,39 @@ class HorizontalBarChart {
         (update) =>
           update
             .on("click", function (e, d) {
-              selectedLanguage = d.language;
-              filterByLanguage(d.language);
+              if (selectedLanguage == d.language) {
+                selectedLanguage = null;
+                updateData();
+              } else {
+                selectedLanguage = d.language;
+                filterByLanguage(d.language);
+              }
+            })
+            .on("mouseover", (e) => {
+              this.svg
+                .selectAll("rect")
+                .transition()
+                .duration(300)
+                .style("opacity", (d) => {
+                  return d.language == selectedLanguage ? 1 : 0.2;
+                });
+              d3.select(e.target)
+                .transition()
+                .duration(300)
+                .style("opacity", 1);
+            })
+            .on("mouseout", (e) => {
+              this.svg
+                .selectAll("rect")
+                .transition()
+                .duration(300)
+                .style("opacity", (d) => {
+                  return !selectedLanguage
+                    ? 1
+                    : d.language == selectedLanguage
+                    ? 1
+                    : 0.2;
+                });
             })
             .transition()
             .duration(1000)
@@ -176,8 +207,6 @@ class HorizontalBarChart {
             .attr("height", this.y.bandwidth())
             .attr("fill", (d, idx) => this.colorScale(idx))
             .style("opacity", (d) => {
-              console.log(`Selected Language: ${selectedLanguage}`);
-              console.log(d);
               return !selectedLanguage
                 ? 1
                 : d.language == selectedLanguage
