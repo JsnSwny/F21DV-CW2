@@ -13,11 +13,9 @@ let selectedPoint;
 let languagesChart;
 let selectedLanguage;
 let networkLines;
-
-const filterByLanguage = (language) => {
-  filteredData = data.filter((item) => item.languages.includes(language));
-  updateData();
-};
+let population;
+let filterDateMin;
+let selectedCountry;
 
 // COLORS
 // -------
@@ -28,9 +26,12 @@ const getData = async () => {
 
 const updateData = () => {
   //   getPopularLanguages();
-  loadChart();
+  networkLines.selectAll(".networkLine").remove();
+  filterData();
+  updateChart();
   updatePoints(filteredData);
   languagesChart.updateChart(filteredData);
+  loadGDP();
 };
 
 // -----------------------
@@ -104,15 +105,11 @@ const loadChart = () => {
 };
 
 const filterDataByDate = () => {
-  console.log("Filtering by date ");
-  filteredData = filteredData.filter(
-    (item) =>
-      new Date(item.created_at) >= filterDateMin &&
-      new Date(item.created_at) <= filterDateMax
-  );
+  filterData();
 
   updatePoints(filteredData);
   languagesChart.updateChart(filteredData);
+  loadGDP();
   // updateContinent(continentSelect.value);
   // updateData();
 };
@@ -150,7 +147,15 @@ function updateChart() {
   const maxDate = d3.max(allData, (d) => d[0]);
 
   // Create a complete set of dates between the min and max dates
-  const allDates = d3.timeMonths(minDate, d3.timeDay.offset(maxDate, 1));
+  if (filterDateMin) {
+    allDates = d3.timeMonths(
+      filterDateMin,
+      d3.timeDay.offset(filterDateMax, 1)
+    );
+  } else {
+    allDates = d3.timeMonths(minDate, d3.timeDay.offset(maxDate, 1));
+  }
+
   lineSvg.selectAll("g").remove();
   lineSvg.selectAll("path").remove();
 
@@ -273,11 +278,43 @@ function updateChart() {
   }
 }
 
+const filterData = () => {
+  filteredData = data;
+  if (filterDateMin) {
+    filteredData = filteredData.filter(
+      (item) =>
+        new Date(item.created_at) >= filterDateMin &&
+        new Date(item.created_at) <= filterDateMax
+    );
+  }
+
+  if (selectedLanguage) {
+    filteredData = filteredData.filter((item) =>
+      item.languages.includes(selectedLanguage)
+    );
+  }
+
+  if (selectedCountry) {
+    groupedCountries = d3.group(filteredData, (d) => d.country_codes);
+    filteredData = groupedCountries.get(selectedCountry);
+  }
+};
+
+const getPopulationData = async () => {
+  population = await d3.csv("population.csv");
+};
+
 getMap().then((map) => {
   loadMap(map);
   getData().then(() => {
-    getPoints();
-    languagesChart = new HorizontalBarChart("#languages", filteredData);
-    updateData();
+    getPopulationData().then(() => {
+      getPoints();
+      languagesChart = new HorizontalBarChart("#languages", filteredData);
+      loadGDP();
+      loadChart();
+      updateData();
+      updateLanguageFilters();
+      updateCountryFilters();
+    });
   });
 });

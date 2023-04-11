@@ -5,17 +5,13 @@ const getMap = async () => {
   return mapData;
 };
 
-const hoverCountry = (obj) => {
-  groupedCountries = d3.group(data, (d) => d.country_codes);
-  filteredData = groupedCountries.get(obj.id);
-  updateData();
-};
-
 const selectPoint = (obj) => {
   following = obj[1].flatMap((item) => item.following_list);
   //   const uniqueFollowing = [...new Set(following.flat())];
 
-  let followingData = data.filter((item) => following.includes(item.id));
+  let followingData = filteredData.filter((item) =>
+    following.includes(item.id)
+  );
 
   followingData = followingData.filter((d) => d.locations !== null);
 
@@ -197,12 +193,16 @@ const loadMap = (mapData) => {
       // updateData();
     })
     .on("click", function (e, d) {
-      d3.selectAll(".country")
-        .transition()
-        .duration(400)
-        .attr("fill", "#33333E");
+      //   d3.selectAll(".country")
+      //     .transition()
+      //     .duration(400)
+      //     .attr("fill", "#33333E");
 
-      d3.select(this).transition().duration(400).attr("fill", "#636386");
+      //   d3.select(this).transition().duration(400).attr("fill", "#636386");
+
+      selectedCountry = d.id;
+      d3.select("");
+      updateData();
     });
 
   mapSvg.call(zoom);

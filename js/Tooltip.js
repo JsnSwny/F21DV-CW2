@@ -44,6 +44,23 @@ var tooltipMouseMove = function (event, d) {
     .style("left", d3.pointer(event, this)[0] + "px")
     .style("top", d3.pointer(event, this)[1] - 100 + "px");
 };
+
+var tooltipMouseMoveCountry = function (event, d) {
+  //   following = filteredData.filter((item) => following.includes(item.id));
+  //   followers = filteredData.filter((item) => followers.includes(item.id));
+
+  Tooltip.html(
+    `<h4 class="tooltip__title">${d.users[0].country}</h4>
+    <br>
+    Users: ${d.numUsers}
+    <br>
+    Population: ${d.population}
+    `
+  )
+    .style("left", d3.pointer(event, this)[0] + "px")
+    .style("top", d3.pointer(event, this)[1] - 100 + "px");
+};
+
 var tooltipMouseOut = function () {
   Tooltip.style("opacity", 0);
 };

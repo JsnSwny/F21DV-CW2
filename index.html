@@ -29,8 +29,22 @@
   <body>
     <section class="container">
       <div id="sidebar" class="sidebar">
+        <h2>Filters</h2>
+        <div class="form-group">
+          <label>Language</label>
+          <select id="languageSelect"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Country</label>
+          <select id="countrySelect"></select>
+        </div>
+
         <h2>Popular Languages</h2>
         <div id="languages"></div>
+
+        <h2>Users vs Population</h2>
+        <div id="scatter"></div>
       </div>
       <div id="map" class="map"><div id="timeline" class="timeline"></div></div>
       <!-- <div id="sidebar" class="sidebar sidebar-right">
@@ -39,6 +53,8 @@
       </div> -->
     </section>
 
+    <script src="js/Filters.js"></script>
+    <script src="js/Scatter.js"></script>
     <script src="js/Tooltip.js"></script>
     <script src="js/Map.js"></script>
     <script src="js/HorizontalBarChart.js"></script>

@@ -153,7 +153,7 @@ class HorizontalBarChart {
                 updateData();
               } else {
                 selectedLanguage = d.language;
-                filterByLanguage(d.language);
+                updateData();
               }
             })
             .on("mouseover", (e) => {
