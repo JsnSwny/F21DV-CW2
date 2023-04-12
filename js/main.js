@@ -225,8 +225,9 @@ function updateChart() {
     if (!e.selection && e.mode == "handle") {
       filterDateMin = minDate;
       filterDateMax = maxDate;
-      x.domain([minDate, maxDate]);
       filterDataByDate();
+      x.domain([minDate, maxDate]);
+      updateChart();
     } else {
       if (e.mode == "handle") {
         console.log("NO RESET");
