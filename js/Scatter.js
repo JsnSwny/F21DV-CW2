@@ -6,8 +6,8 @@
 const loadGDP = () => {
   d3.select("#scatter").selectAll("svg").remove();
   // set the dimensions and margins of the graph
-  const margin = { top: 10, right: 30, bottom: 60, left: 60 },
-    width = 500 - margin.left - margin.right,
+  const margin = { top: 10, right: 64, bottom: 60, left: 100 },
+    width = sidebarDom.offsetWidth - margin.left - margin.right,
     height = 300 - margin.top - margin.bottom;
 
   // append the svg object to the body of the page

@@ -1,7 +1,7 @@
 class HorizontalBarChart {
   constructor(svgElement, data) {
-    this.margin = { top: 20, right: 30, bottom: 40, left: 90 };
-    this.width = 500 - this.margin.left - this.margin.right;
+    this.margin = { top: 20, right: 64, bottom: 40, left: 100 };
+    this.width = sidebarDom.offsetWidth - this.margin.left - this.margin.right;
     this.height = 400 - this.margin.top - this.margin.bottom;
     this.svg = d3
       .select(svgElement)

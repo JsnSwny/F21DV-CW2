@@ -5,7 +5,7 @@ let mapSvg = null;
 let projection = null;
 let plotColor = null;
 let radiusScale = null;
-let map;
+let mapData;
 let plots;
 let points;
 let filteredPoints;
@@ -16,6 +16,7 @@ let networkLines;
 let population;
 let filterDateMin;
 let selectedCountry;
+let sidebarDom = document.getElementById("sidebar");
 
 // COLORS
 // -------
@@ -44,8 +45,9 @@ const loadChart = () => {
 
   d3.select("#timeline").selectAll("svg").remove();
   d3.select("#legend-container").selectAll("div").remove();
-  const margin = { top: 10, right: 100, bottom: 70, left: 65 },
-    width = 1400 - margin.left - margin.right,
+  mapWidth = document.querySelector(".map").offsetWidth;
+  const margin = { top: 10, right: 32, bottom: 30, left: 64 },
+    width = mapWidth - margin.left - margin.right,
     height = 200 - margin.top - margin.bottom;
 
   // append the svg object to the body of the page
@@ -115,10 +117,9 @@ const filterDataByDate = () => {
 };
 
 function updateChart() {
-  //   mapWidth = document.querySelector(".map").offsetWidth;
-  //   mapHeight = document.querySelector(".view").offsetHeight;
-  const margin = { top: 10, right: 100, bottom: 30, left: 50 },
-    width = 1400 - margin.left - margin.right,
+  mapWidth = document.querySelector(".map").offsetWidth;
+  const margin = { top: 10, right: 32, bottom: 30, left: 64 },
+    width = mapWidth - margin.left - margin.right,
     height = 200 - margin.top - margin.bottom;
   const lineSvg = d3.select("#timeline").select("g");
 
@@ -304,8 +305,23 @@ const getPopulationData = async () => {
   population = await d3.csv("population.csv");
 };
 
+const reloadData = () => {
+  d3.select("body").selectAll("svg").remove();
+  loadMap(mapData);
+  getPoints();
+  languagesChart = new HorizontalBarChart("#languages", filteredData);
+  loadGDP();
+  loadChart();
+};
+
+// When window is resized, reload the current view
+window.addEventListener("resize", (event) => {
+  reloadData();
+});
+
 getMap().then((map) => {
-  loadMap(map);
+  mapData = map;
+  loadMap(mapData);
   getData().then(() => {
     getPopulationData().then(() => {
       getPoints();

@@ -152,6 +152,7 @@ const addPoints = (data) => {
 
 const loadMap = (mapData) => {
   mapSvg = d3.select("#map").append("svg").attr("id", "map");
+
   let width = document.querySelector("#map").offsetWidth;
   let height = document.querySelector("#map").offsetHeight;
   mapSvg.attr("width", width);
