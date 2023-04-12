@@ -32,13 +32,13 @@ var tooltipMouseMove = function (event, d) {
   Tooltip.html(
     `<h4 class="tooltip__title">${latitude}, ${longitude}</h4>
     <br>
-    Users: ${d[1].length}
+    Users: ${d[1].length.toLocaleString()}
     <br>
     Location: ${locations[0]}${
       locations.length > 1 ? ", " + locations[locations.length - 1] : ""
     }
     <br>
-    Following: ${following.length}
+    Following: ${following.length.toLocaleString()}
     `
   )
     .style("left", d3.pointer(event, this)[0] + "px")
@@ -46,15 +46,24 @@ var tooltipMouseMove = function (event, d) {
 };
 
 var tooltipMouseMoveCountry = function (event, d) {
-  //   following = filteredData.filter((item) => following.includes(item.id));
-  //   followers = filteredData.filter((item) => followers.includes(item.id));
-
   Tooltip.html(
     `<h4 class="tooltip__title">${d.users[0].country}</h4>
     <br>
-    Users: ${d.numUsers}
+    Users: ${d.numUsers.toLocaleString()}
     <br>
-    Population: ${d.population}
+    Population: ${d.population.toLocaleString()}
+    `
+  )
+    .style("left", d3.pointer(event, this)[0] + "px")
+    .style("top", d3.pointer(event, this)[1] - 100 + "px");
+};
+
+var tooltipMouseMoveLanguage = function (event, d) {
+  console.log(d);
+  Tooltip.html(
+    `<h4 class="tooltip__title">${d.language}</h4>
+    <br>
+    Users: ${d.count.toLocaleString()}
     `
   )
     .style("left", d3.pointer(event, this)[0] + "px")

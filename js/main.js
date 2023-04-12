@@ -17,6 +17,7 @@ let population;
 let filterDateMin;
 let selectedCountry;
 let sidebarDom = document.getElementById("sidebar");
+let scatterData;
 
 // COLORS
 // -------
@@ -27,12 +28,12 @@ const getData = async () => {
 
 const updateData = () => {
   //   getPopularLanguages();
-  networkLines.selectAll(".networkLine").remove();
   filterData();
   updateChart();
   updatePoints(filteredData);
   languagesChart.updateChart(filteredData);
   loadGDP();
+  updateSummary();
 };
 
 // -----------------------
@@ -79,30 +80,6 @@ const loadChart = () => {
     .attr("class", "chart-labels")
     .text("Total Per Million People");
 
-  //   chartLines.domain().forEach((item, i) => {
-  //     let legendItem = legend
-  //       .append("div")
-  //       .attr("class", "legend__item")
-  //       .style("opacity", () => (chartDisplay.includes(item) ? 1 : 0.4))
-  //       .style("cursor", "pointer")
-  //       .on("click", () => {
-  //         if (chartDisplay.includes(item)) {
-  //           chartDisplay = chartDisplay.filter((chartItem) => chartItem != item);
-  //         } else {
-  //           chartDisplay.push(item);
-  //         }
-  //         loadChart();
-  //       });
-  //     legendItem
-  //       .append("span")
-  //       .attr("width", 8)
-  //       .attr("height", 8)
-  //       .attr("class", "legend__color")
-  //       .style("background-color", chartLines(item));
-
-  //     legendItem.append("span").text(item).attr("class", "legend__text");
-  //   });
-
   updateChart();
 };
 
@@ -112,8 +89,6 @@ const filterDataByDate = () => {
   updatePoints(filteredData);
   languagesChart.updateChart(filteredData);
   loadGDP();
-  // updateContinent(continentSelect.value);
-  // updateData();
 };
 
 function updateChart() {
@@ -246,16 +221,24 @@ function updateChart() {
     extent = e.selection; // Boundaries
 
     // If no selection, back to initial coordinate. Otherwise, update X axis domain
-    if (!e.selection) {
-      if (!idleTimeout) return (idleTimeout = setTimeout(idled, 350)); // This allows to wait a little bit
-      x.domain([4, 8]);
-    } else {
-      filterDateMin = x.invert(e.selection[0]);
-      filterDateMax = x.invert(e.selection[1]);
+    console.log(e);
+    if (!e.selection && e.mode == "handle") {
+      filterDateMin = minDate;
+      filterDateMax = maxDate;
+      x.domain([minDate, maxDate]);
       filterDataByDate();
-      x.domain([filterDateMin, filterDateMax]);
-      line.select(".brush").call(brush.move, null); // Removes gray selection after brushing is complete
+    } else {
+      if (e.mode == "handle") {
+        console.log("NO RESET");
+        filterDateMin = x.invert(e.selection[0]);
+        filterDateMax = x.invert(e.selection[1]);
+        filterDataByDate();
+        x.domain([filterDateMin, filterDateMax]);
+        line.select(".brush").call(brush.move, null);
+      }
     }
+
+    console.log(x.domain);
 
     // Update axis and line position
     xAxis.transition().duration(1000).call(d3.axisBottom(x));
@@ -299,6 +282,7 @@ const filterData = () => {
     groupedCountries = d3.group(filteredData, (d) => d.country_codes);
     filteredData = groupedCountries.get(selectedCountry);
   }
+  networkLines.selectAll(".networkLine").remove();
 };
 
 const getPopulationData = async () => {

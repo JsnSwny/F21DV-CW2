@@ -1,3 +1,25 @@
+const updateSummary = () => {
+  d3.select("#data-summary").select("#data-summary__content").remove();
+  content = d3
+    .select("#data-summary")
+    .append("div")
+    .attr("id", "data-summary__content");
+
+  content
+    .append("p")
+    .append("b")
+    .text(`Total Users: `)
+    .append("span")
+    .text(`${filteredData.length.toLocaleString()}`);
+
+  content
+    .append("p")
+    .append("b")
+    .text(`Unique Points: `)
+    .append("span")
+    .text(`${points.size.toLocaleString()}`);
+};
+
 const selectCountry = (country) => {
   selectedOption = d3
     .select("#countrySelect")

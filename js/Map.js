@@ -75,7 +75,7 @@ const getPoints = async () => {
 
 const updatePoints = (data) => {
   data = data.filter((d) => d.locations !== null);
-  let points = d3.group(data, (d) => `${d.latitude},${d.longitude}`);
+  points = d3.group(data, (d) => `${d.latitude},${d.longitude}`);
 
   const maxIdsLength = d3.max(points, (group) => group[1].length);
 
@@ -151,7 +151,15 @@ const addPoints = (data) => {
 };
 
 const loadMap = (mapData) => {
-  mapSvg = d3.select("#map").append("svg").attr("id", "map");
+  mapSvg = d3
+    .select("#map")
+    .append("svg")
+    .attr("id", "map")
+    .on("click", function (e) {
+      if (e.target == this) {
+        selectCountry("");
+      }
+    });
 
   let width = document.querySelector("#map").offsetWidth;
   let height = document.querySelector("#map").offsetHeight;
@@ -177,15 +185,17 @@ const loadMap = (mapData) => {
     .style("stroke", "#262632")
     .attr("fill", "#33333E")
     .style("cursor", "pointer")
-    .on("mouseover", function (e, d) {
-      // d3.selectAll(".country")
-      //   .transition()
-      //   .duration(400)
-      //   .attr("fill", "#33333E");
-      // d3.select(this).transition().duration(400).attr("fill", "#0083B7");
-      // hoverCountry(d);
+    .on("mousemove", (e, d) => {
+      let country = scatterData.find((item) => item.countryCode == d.id);
+      tooltipMouseMoveCountry(e, country);
     })
-    .on("mouseout", function (e, d) {})
+
+    .on("mouseover", (e, d) => {
+      tooltipMouseOver();
+    })
+    .on("mouseout", (e, d) => {
+      tooltipMouseOut();
+    })
     .on("click", function (e, d) {
       selectCountry(d.id);
     });

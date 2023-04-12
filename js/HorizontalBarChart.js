@@ -1,6 +1,6 @@
 class HorizontalBarChart {
   constructor(svgElement, data) {
-    this.margin = { top: 20, right: 64, bottom: 40, left: 100 };
+    this.margin = { top: 0, right: 100, bottom: 40, left: 87 };
     this.width = sidebarDom.offsetWidth - this.margin.left - this.margin.right;
     this.height = 400 - this.margin.top - this.margin.bottom;
     this.svg = d3
@@ -126,9 +126,6 @@ class HorizontalBarChart {
     // Update Y axis
     this.svg.select(".y-axis").call(this.yAxis);
 
-    console.log("Updating chart");
-    console.log(this.sortedLanguages);
-
     // Update bars
     this.svg
       .selectAll("rect")
@@ -157,6 +154,7 @@ class HorizontalBarChart {
               }
             })
             .on("mouseover", (e) => {
+              tooltipMouseOver();
               d3.select(e.target)
                 .transition()
                 .duration(300)
@@ -164,6 +162,7 @@ class HorizontalBarChart {
             })
 
             .on("mouseout", (e) => {
+              tooltipMouseOut();
               d3.select(e.target)
                 .transition()
                 .duration(300)
@@ -174,6 +173,9 @@ class HorizontalBarChart {
                     ? 0.2
                     : 1
                 );
+            })
+            .on("mousemove", (e, d) => {
+              tooltipMouseMoveLanguage(e, d);
             })
             .transition()
             .duration(1000)

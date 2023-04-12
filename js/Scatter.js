@@ -6,9 +6,9 @@
 const loadGDP = () => {
   d3.select("#scatter").selectAll("svg").remove();
   // set the dimensions and margins of the graph
-  const margin = { top: 10, right: 64, bottom: 60, left: 100 },
+  const margin = { top: 10, right: 100, bottom: 60, left: 40 },
     width = sidebarDom.offsetWidth - margin.left - margin.right,
-    height = 300 - margin.top - margin.bottom;
+    height = 400 - margin.top - margin.bottom;
 
   // append the svg object to the body of the page
   const svg = d3
@@ -21,8 +21,7 @@ const loadGDP = () => {
 
   dataWithCountry = filteredData.filter((item) => item.country_codes != null);
   groupedCountries = d3.group(dataWithCountry, (d) => d.country_codes);
-
-  const scatterData = [];
+  scatterData = [];
   groupedCountries.forEach((value, key) => {
     const numUsers = value.length;
 
@@ -32,7 +31,6 @@ const loadGDP = () => {
 
     if (countryPopulation) {
       scatterData.push({
-        countryCode: key,
         countryCode: key,
         numUsers: numUsers,
         users: value,
@@ -53,7 +51,7 @@ const loadGDP = () => {
 
   const x = d3
     .scaleLog()
-    .domain([30000, maxValues.max_population])
+    .domain([25000, maxValues.max_population])
     .range([0, width]);
   svg
     .append("g")
@@ -117,6 +115,7 @@ const loadGDP = () => {
           })
           .on("click", (e, d) => {
             selectCountry(d.countryCode);
+            Tooltip.style("opacity", 0);
           });
         return g;
       },
