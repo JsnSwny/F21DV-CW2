@@ -6,7 +6,7 @@
 const loadGDP = () => {
   d3.select("#scatter").selectAll("svg").remove();
   // set the dimensions and margins of the graph
-  const margin = { top: 10, right: 100, bottom: 60, left: 40 },
+  const margin = { top: 10, right: 100, bottom: 20, left: 40 },
     width = sidebarDom.offsetWidth - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
 

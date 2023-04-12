@@ -11,6 +11,17 @@ body {
   overflow: hidden;
 }
 
+.title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.logo {
+  width: 30px;
+  margin-right: 0.75rem;
+}
+
 .container {
   display: flex;
   width: 100%;
@@ -55,6 +66,10 @@ body {
   margin-bottom: 2rem;
 }
 
+.sidebar .sidebar__section:last-child {
+  margin-bottom: 0;
+}
+
 .sidebar-right {
   right: 0;
 }
@@ -85,8 +100,13 @@ select {
   width: 100%;
 }
 
+.title {
+  font-size: 28px;
+}
+
 h2 {
   margin-bottom: 1rem;
+  font-size: 22px;
 }
 
 p {
