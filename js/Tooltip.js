@@ -24,10 +24,6 @@ var tooltipMouseMove = function (event, d) {
   locations = d[1][0].locations.split(", ");
   [latitude, longitude] = d[0].split(",");
   following = d[1].flatMap((item) => item.following_list);
-  followers = d[1].flatMap((item) => item.followers_list);
-
-  //   following = filteredData.filter((item) => following.includes(item.id));
-  //   followers = filteredData.filter((item) => followers.includes(item.id));
 
   Tooltip.html(
     `<h4 class="tooltip__title">${latitude}, ${longitude}</h4>

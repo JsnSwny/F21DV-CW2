@@ -69,7 +69,6 @@ class HorizontalBarChart {
 
     this.svg.selectAll("*").remove();
 
-    // X axis
     this.svg
       .append("g")
       .attr("class", "x-axis")
@@ -79,10 +78,8 @@ class HorizontalBarChart {
       .attr("transform", "translate(-10,0)rotate(-45)")
       .style("text-anchor", "end");
 
-    // Y axis
     this.svg.append("g").attr("class", "y-axis").call(this.yAxis);
 
-    // Bars
     this.svg
       .selectAll("myRect")
       .data(this.sortedLanguages)
@@ -120,13 +117,10 @@ class HorizontalBarChart {
     this.x.domain([0, this.sortedLanguages[0].count]);
     this.y.domain(this.sortedLanguages.map((d) => d.language));
 
-    // Update X axis
     this.svg.select(".x-axis").call(this.xAxis);
 
-    // Update Y axis
     this.svg.select(".y-axis").call(this.yAxis);
 
-    // Update bars
     this.svg
       .selectAll("rect")
       .data(this.sortedLanguages)

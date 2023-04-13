@@ -27,7 +27,6 @@ const getData = async () => {
 };
 
 const updateData = () => {
-  //   getPopularLanguages();
   filterData();
   updateChart();
   updatePoints(filteredData);
@@ -42,8 +41,6 @@ const updateData = () => {
 // -----------------------
 
 const loadChart = () => {
-  // set the dimensions and margins of the graph
-
   d3.select("#timeline").selectAll("svg").remove();
   d3.select("#legend-container").selectAll("div").remove();
   mapWidth = document.querySelector(".map").offsetWidth;
@@ -51,7 +48,6 @@ const loadChart = () => {
     width = mapWidth - margin.left - margin.right,
     height = 200 - margin.top - margin.bottom;
 
-  // append the svg object to the body of the page
   const lineSvg = d3
     .select("#timeline")
     .append("svg")
@@ -61,7 +57,6 @@ const loadChart = () => {
     .attr("transform", `translate(${margin.left},${margin.top})`);
   const legend = d3.select("#legend-container");
 
-  // X label
   d3.select("#view svg")
     .append("text")
     .attr("x", width / 2 + 100)
@@ -71,7 +66,6 @@ const loadChart = () => {
     .style("font-size", 12)
     .text("Date");
 
-  // Y label
   d3.select("#view svg")
     .append("text")
     .attr("text-anchor", "middle")
@@ -89,6 +83,7 @@ const filterDataByDate = () => {
   updatePoints(filteredData);
   languagesChart.updateChart(filteredData);
   loadGDP();
+  updateSummary();
 };
 
 function updateChart() {
@@ -102,19 +97,16 @@ function updateChart() {
     data.filter((d) => d.created_at !== null && d.created_at !== undefined),
     (d) => {
       const date = new Date(d.created_at);
-      // Create new Date object with only date portion
       return new Date(date.getFullYear(), date.getMonth(), date.getDay());
     }
   );
 
-  // Group data by date, excluding data with null or undefined timestamps
   let groupedData = d3.group(
     filteredData.filter(
       (d) => d.created_at !== null && d.created_at !== undefined
     ),
     (d) => {
       const date = new Date(d.created_at);
-      // Create new Date object with only date portion
       return new Date(date.getFullYear(), date.getMonth());
     }
   );
@@ -122,7 +114,6 @@ function updateChart() {
   const minDate = d3.min(allData, (d) => d[0]);
   const maxDate = d3.max(allData, (d) => d[0]);
 
-  // Create a complete set of dates between the min and max dates
   if (filterDateMin) {
     allDates = d3.timeMonths(
       filterDateMin,
@@ -135,7 +126,6 @@ function updateChart() {
   lineSvg.selectAll("g").remove();
   lineSvg.selectAll("path").remove();
 
-  // Fill in any missing dates with zero counts
   groupedData = allDates.map((date) => [date, groupedData.get(date) || []]);
 
   //   groupedData = Array.from(groupedData).sort((a, b) => a[0] - b[0]);
@@ -207,20 +197,16 @@ function updateChart() {
         })
     );
 
-  // Add the brushing
   line.append("g").attr("class", "brush").call(brush);
 
-  // A function that set idleTimeOut to null
   var idleTimeout;
   function idled() {
     idleTimeout = null;
   }
 
-  // Handles when chart is brushed/resized
   function resizeChart(e) {
-    extent = e.selection; // Boundaries
+    extent = e.selection;
 
-    // If no selection, back to initial coordinate. Otherwise, update X axis domain
     console.log(e);
     if (!e.selection && e.mode == "handle") {
       filterDateMin = minDate;
