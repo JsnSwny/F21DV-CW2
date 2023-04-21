@@ -17,6 +17,7 @@ const selectPoint = (obj) => {
   const groupLatLongs = followingData.map((item) => [
     item.latitude,
     item.longitude,
+    item.locations,
   ]);
 
   const lineGenerator = d3
@@ -47,6 +48,20 @@ const selectPoint = (obj) => {
     })
     .attr("stroke-dashoffset", function () {
       return this.getTotalLength();
+    })
+    .on("mousemove", (e, d) => {
+      locations_from = obj[1][0].locations.split(", ");
+      locations_to = d[2].split(", ");
+      connections = followingData.filter(
+        (item) => item.latitude == d[0] && item.longitude == d[1]
+      );
+      tooltipMouseMoveNetwork(e, locations_from, locations_to, connections);
+    })
+    .on("mouseover", function (e, d) {
+      tooltipMouseOver();
+    })
+    .on("mouseout", function (e, d) {
+      tooltipMouseOut();
     })
     .transition()
     .duration(2000)
